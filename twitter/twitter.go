@@ -1,0 +1,236 @@
+package twitter
+
+import (
+	"github.com/SocialNetworkNews/anaconda"
+	"github.com/dghubble/oauth1"
+	"github.com/dghubble/oauth1/twitter"
+	"fmt"
+	"net/url"
+	"strings"
+	"encoding/csv"
+	"os"
+	"time"
+	"path/filepath"
+	"sync"
+	"encoding/json"
+	"strconv"
+)
+
+var apiOnce sync.Once
+var api *TwitterAPI
+
+type Tweets struct {
+	Tweets []Tweet `json:"tweets,omitempty"`
+}
+
+type Tweet struct {
+	Username string `json:"username"`
+	UserID string `json:"user_id"`
+	DisplayName string `json:"display_name"`
+	UserProfileLink string `json:"userprofile_link"`
+	Text string `json:"text"`
+	IMGUrls []string `json:"image_urls"`
+	CreatedAt string `json:"created_at"`
+	Favorites string `json:"favorites"`
+	Retweets string `json:"retweets"`
+	Retweet bool `json:"retweet"`
+}
+
+type TwitterAPI struct {
+	api *anaconda.TwitterApi
+	stream *anaconda.Stream
+}
+
+func NewTwitterAPIStruct() *TwitterAPI {
+	apiOnce.Do(func() {
+		api = &TwitterAPI{}
+	})
+	return api
+}
+
+func(t *TwitterAPI) getTokens(config *oauth1.Config) (string ,string , error) {
+	requestToken, requestSecret, TokenErr := config.RequestToken()
+	if TokenErr != nil {
+		return "", "", TokenErr
+	}
+
+	authorizationURL, URLErr := config.AuthorizationURL(requestToken)
+	if URLErr != nil {
+		return "", "", URLErr
+	}
+
+	fmt.Println(authorizationURL.String())
+	fmt.Print("Enter PinCode: ")
+	var pin string
+	fmt.Scanln(&pin)
+
+	accessToken, accessSecret, ATErr := config.AccessToken(requestToken, requestSecret, pin)
+	if ATErr != nil {
+		return "", "", ATErr
+	}
+
+	return accessToken, accessSecret, nil
+
+}
+
+func(t *TwitterAPI) Login(consumerKey, consumerSecret string) (err error) {
+	oauthConfig := &oauth1.Config{
+		ConsumerKey:    consumerKey,
+		ConsumerSecret: consumerSecret,
+		Endpoint:       twitter.AuthorizeEndpoint,
+	}
+	accessToken, accessSecret, ATErr := t.getTokens(oauthConfig)
+	if ATErr != nil {
+		err = ATErr
+		return
+	}
+
+	anaconda.SetConsumerKey(consumerKey)
+	anaconda.SetConsumerSecret(consumerSecret)
+	t.api = anaconda.NewTwitterApi(accessToken, accessSecret)
+	return
+}
+
+func(t *TwitterAPI) StartListening(lists []string, hashtags []string) (error) {
+	fmt.Println("StartListening")
+	Alists, AListErr := t.getLists(lists)
+	if AListErr != nil {
+		return AListErr
+	}
+	usersS, MembersErr := t.getListMembersS(Alists)
+	if MembersErr != nil {
+		return MembersErr
+	}
+
+	hastagsS := strings.Join(hashtags, ",")
+
+	v := url.Values{}
+	v.Set("follow", usersS)
+	v.Set("track", hastagsS)
+
+	t.stream = t.api.PublicStreamFilter(v)
+	for tw := range t.stream.C {
+		switch v := tw.(type) {
+		case anaconda.Tweet:
+			currentTime := time.Now().Local()
+			t.writeCSV([]string{v.IdStr, currentTime.String()})
+			fmt.Printf("%-15s: %s\n", v.User.ScreenName, v.FullText)
+		default:
+			fmt.Println("Got some other Type: ", v)
+		}
+	}
+	return nil
+}
+
+func (t *TwitterAPI) writeCSV(tweet []string) (error) {
+	currentTime := time.Now().Local()
+	dataPath := filepath.Join(".", "data")
+	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+		os.Mkdir(dataPath, os.ModePerm)
+	}
+	filename := fmt.Sprintf("tweets_%s.csv", currentTime.Format("2006_01_02"))
+	dataFilePath := filepath.Join(".", "data", filename)
+
+	// write the file
+	f, err := os.OpenFile(dataFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+	w := csv.NewWriter(f)
+	w.Write(tweet)
+	w.Flush()
+	defer f.Close()
+	return nil
+}
+
+func (t *TwitterAPI) getLists(lists []string) ([]anaconda.List, error) {
+	var Alists []anaconda.List
+	for _, l := range lists {
+		s := strings.Split(l, "/")
+		v := url.Values{}
+		list, err := t.api.GetListBySlug(s[1], s[0], v)
+		if err != nil {
+			return nil, err
+		}
+		Alists = append(Alists, list)
+	}
+
+	return Alists, nil
+}
+
+func(t *TwitterAPI) getListMembersS(lists []anaconda.List) (string, error) {
+	var users []anaconda.User
+	var usersSS []string
+	for _, l := range lists {
+		v := url.Values{}
+		members, err := t.api.GetListMembers(l.Id, v)
+		if err != nil {
+			return "", err
+		}
+
+		users = append(users, members...)
+	}
+
+	for _, u := range users {
+		usersSS = append(usersSS, u.IdStr)
+	}
+
+	usersS := strings.Join(usersSS, ",")
+	return usersS, nil
+}
+
+func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
+	v := url.Values{}
+	v.Set("include_entities", "true")
+
+	tweetsR, tweetErr := t.api.GetTweetsLookupByIds(tweets, v)
+	if tweetErr != nil {
+		return nil, tweetErr
+	}
+	var JTweets []Tweet
+
+	for _, t := range tweetsR {
+		//fmt.Printf("%+v\n\n\n", t)
+		JT := Tweet{}
+		JT.Username = t.User.ScreenName
+		JT.UserID = t.User.IdStr
+		JT.DisplayName = t.User.Name
+		JT.UserProfileLink = "https://twitter.com/" + t.User.ScreenName
+		fmt.Println("ExtendedFull: ", t.ExtendedTweet.FullText)
+		fmt.Println("Full: ", t.FullText)
+		fmt.Println("Text: ", t.Text)
+		if t.ExtendedTweet.FullText != "" {
+			JT.Text = t.ExtendedTweet.FullText
+		} else if t.FullText != "" {
+			JT.Text = t.FullText
+		} else {
+			JT.Text = t.Text
+		}
+
+		tweetTime, err := t.CreatedAtTime()
+		if err != nil {
+			return nil, err
+		}
+		JT.CreatedAt = tweetTime.Format("02.01.2006")
+		JT.Favorites = strconv.Itoa(t.FavoriteCount)
+		JT.Retweets = strconv.Itoa(t.RetweetCount)
+		JT.Retweet = t.Retweeted
+		for _, i := range t.ExtendedEntities.Media {
+			if i.Type == "photo" {
+				JT.IMGUrls = append(JT.IMGUrls, i.Media_url_https)
+			}
+		}
+
+		JTweets = append(JTweets, JT)
+	}
+
+	tweetsS := Tweets{}
+	tweetsS.Tweets = JTweets
+
+	tweetObject, err := json.Marshal(tweetsS)
+	if err != nil {
+		return nil, err
+	}
+
+	return tweetObject, nil
+}
