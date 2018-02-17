@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
 	"fmt"
-	"github.com/gorilla/mux"
-	"net/http"
 	web_api "github.com/SocialNetworkNews/SocialNetworkNews_API/api"
-	"log"
-	"github.com/rs/cors"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
+	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(http.ListenAndServe(":8000", handler))
 	}()
 
-	err := api.StartListening(configData.Lists,configData.Hashtags)
+	err := api.StartListening(configData.Lists, configData.Hashtags)
 	if err != nil {
 		fmt.Println(err)
 	}

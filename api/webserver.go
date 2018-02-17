@@ -1,15 +1,15 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"net/http"
+	"encoding/csv"
 	"fmt"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
+	"github.com/gorilla/mux"
+	"net/http"
 	"os"
 	"path/filepath"
-	"time"
-	"encoding/csv"
 	"strconv"
+	"time"
 )
 
 func Yesterday(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func getTweets() ([]byte, error) {
 	}
 
 	var tweets []int64
-	for _, t := range data  {
+	for _, t := range data {
 		i, err := strconv.ParseInt(t[0], 10, 64)
 		if err != nil {
 			return nil, err

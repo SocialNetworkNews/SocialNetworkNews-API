@@ -14,10 +14,10 @@ type Config struct {
 }
 
 type TwitterConfig struct {
-	ConsumerKey string `yaml:"consumerKey"`
-	ConsumerSecret string `yaml:"consumerSecret"`
-	Lists []string `yaml:"lists,flow"`
-	Hashtags []string `yaml:"hashtags,flow"`
+	ConsumerKey    string   `yaml:"consumerKey"`
+	ConsumerSecret string   `yaml:"consumerSecret"`
+	Lists          []string `yaml:"lists,flow"`
+	Hashtags       []string `yaml:"hashtags,flow"`
 }
 
 func GetConfig() (*Config, error) {
