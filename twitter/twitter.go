@@ -230,7 +230,12 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			JT.CreatedAt = tweetTime.Format("02.01.2006")
 			JT.Favorites = strconv.Itoa(t.FavoriteCount)
 			JT.Retweets = strconv.Itoa(t.RetweetCount)
-			JT.Retweet = t.Retweeted
+			if t.RetweetedStatus != nil {
+				JT.Retweet = true
+			} else {
+				JT.Retweet = false
+			}
+
 			for _, i := range t.ExtendedEntities.Media {
 				if i.Type == "photo" {
 					JT.IMGUrls = append(JT.IMGUrls, i.Media_url_https)
