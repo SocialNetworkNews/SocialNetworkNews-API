@@ -183,6 +183,7 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 	v := url.Values{}
 	v.Set("include_entities", "true")
 	retweets := make(map[string]bool)
+	tweetsSlice := make(map[string]bool)
 
 	var divided [][]int64
 
@@ -209,15 +210,23 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 		for _, t := range tweetsR {
 			//fmt.Printf("%+v\n\n\n", t)
 			JT := Tweet{}
+			if tweetsSlice[t.IdStr] {
+				continue
+			}
 			if t.RetweetedStatus != nil {
 				JT.Retweet = true
-				if retweets[t.RetweetedStatus.IdStr] {
+				if tweetsSlice[t.RetweetedStatus.IdStr] {
 					continue
 				}
-				retweets[t.RetweetedStatus.IdStr] = true
+				if retweets[t.RetweetedStatus.IdStr] {
+					continue
+				} else {
+					retweets[t.RetweetedStatus.IdStr] = true
+				}
 			} else {
 				JT.Retweet = false
 			}
+			tweetsSlice[t.IdStr] = true
 			JT.Username = t.User.ScreenName
 			JT.UserID = t.User.IdStr
 			JT.DisplayName = t.User.Name
