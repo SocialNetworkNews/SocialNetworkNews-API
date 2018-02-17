@@ -215,13 +215,13 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			}
 			if t.RetweetedStatus != nil {
 				JT.Retweet = true
-				if tweetsSlice[t.RetweetedStatus.IdStr] {
-					continue
-				}
 				if retweets[t.RetweetedStatus.IdStr] {
 					continue
 				} else {
 					retweets[t.RetweetedStatus.IdStr] = true
+				}
+				if tweetsSlice[t.RetweetedStatus.IdStr] {
+					continue
 				}
 			} else {
 				JT.Retweet = false
