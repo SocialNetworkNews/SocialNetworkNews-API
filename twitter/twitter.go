@@ -182,6 +182,7 @@ func (t *TwitterAPI) getListMembersS(lists []anaconda.List) (string, error) {
 func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 	v := url.Values{}
 	v.Set("include_entities", "true")
+	retweets := make(map[string]bool)
 
 	var divided [][]int64
 
@@ -208,6 +209,15 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 		for _, t := range tweetsR {
 			//fmt.Printf("%+v\n\n\n", t)
 			JT := Tweet{}
+			if t.RetweetedStatus != nil {
+				JT.Retweet = true
+				if retweets[t.RetweetedStatus.IdStr] {
+					continue
+				}
+				retweets[t.RetweetedStatus.IdStr] = true
+			} else {
+				JT.Retweet = false
+			}
 			JT.Username = t.User.ScreenName
 			JT.UserID = t.User.IdStr
 			JT.DisplayName = t.User.Name
@@ -230,11 +240,6 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			JT.CreatedAt = tweetTime.Format("02.01.2006")
 			JT.Favorites = strconv.Itoa(t.FavoriteCount)
 			JT.Retweets = strconv.Itoa(t.RetweetCount)
-			if t.RetweetedStatus != nil {
-				JT.Retweet = true
-			} else {
-				JT.Retweet = false
-			}
 
 			for _, i := range t.ExtendedEntities.Media {
 				if i.Type == "photo" {
