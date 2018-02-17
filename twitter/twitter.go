@@ -208,7 +208,6 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 		}
 
 		for _, t := range tweetsR {
-			//fmt.Printf("%+v\n\n\n", t)
 			JT := Tweet{}
 			if tweetsSlice[t.IdStr] {
 				continue
@@ -231,9 +230,6 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			JT.UserID = t.User.IdStr
 			JT.DisplayName = t.User.Name
 			JT.UserProfileLink = "https://twitter.com/" + t.User.ScreenName
-			fmt.Println("ExtendedFull: ", t.ExtendedTweet.FullText)
-			fmt.Println("Full: ", t.FullText)
-			fmt.Println("Text: ", t.Text)
 			if t.ExtendedTweet.FullText != "" {
 				JT.Text = t.ExtendedTweet.FullText
 			} else if t.FullText != "" {
