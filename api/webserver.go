@@ -40,6 +40,7 @@ type Paper struct {
 }
 
 type Author struct {
+	UUID           string `json:"uuid,omitempty"`
 	Username       string `json:"username,omitempty"`
 	ProfileIMGURL  string `json:"profile_image_url,omitempty"`
 	TwitterProfile string `json:"twitter_profile,omitempty"`

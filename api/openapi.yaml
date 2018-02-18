@@ -45,6 +45,45 @@ paths:
                       type: "string"
                     uuid:
                       type: "string"
+    post:
+      tags:
+        - paper
+      summary: Add a new Paper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  author:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+      responses:
+        '200':    # status code
+          description: A JSON array containing a short info about the just added Papers (might be different ordered)
+          headers:
+            API-VERSION:
+              schema:
+                type: string
+                default: 0.0.0
+              description: Current API Version.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    name:
+                      type: "string"
+                    uuid:
+                      type: "string"
   /paper/{uuid}:
     get:
       tags:
@@ -81,6 +120,8 @@ paths:
                   author:
                     type: object
                     properties:
+                      uuid:
+                        type: string
                       username:
                         type: string
                       profile_image_url:
