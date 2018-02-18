@@ -147,6 +147,8 @@ func getPapers() ([]byte, error) {
 		it := txn.NewIterator(opts)
 		prefix := []byte("papers|paper|")
 
+		known := make(map[string]bool)
+
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.Item()
 			key := item.Key()
@@ -154,6 +156,10 @@ func getPapers() ([]byte, error) {
 			stringKeySlice := strings.Split(stringKey, "|")
 			stringKeyEnd := stringKeySlice[len(stringKeySlice)-1]
 			paper := Paper{}
+			if known[stringKeyEnd] {
+				continue
+			}
+			known[stringKeyEnd] = true
 			paper.UUID = stringKeyEnd
 
 			nameResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s|name", stringKey)))
