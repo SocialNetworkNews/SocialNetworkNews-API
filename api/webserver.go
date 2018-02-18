@@ -22,6 +22,7 @@ func Yesterday(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("API-VERSION", "0.0.0")
 	w.WriteHeader(http.StatusOK)
 	w.Write(tweets)
 }
