@@ -162,9 +162,9 @@ func getPapers() ([]byte, error) {
 			known[stringKeyEnd] = true
 			paper.UUID = stringKeyEnd
 
-			nameResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s|name", stringKey)))
+			nameResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s|%s|name", prefix, stringKeyEnd)))
 			if QueryErr != nil {
-				return errors.WithMessage(QueryErr, fmt.Sprintf("Key: %s|name", stringKey))
+				return errors.WithMessage(QueryErr, fmt.Sprintf("%s|%s|name", prefix, stringKeyEnd))
 			}
 
 			paper.Name = fmt.Sprintf("%s", nameResult)
