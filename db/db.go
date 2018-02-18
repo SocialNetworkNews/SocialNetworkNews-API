@@ -1,0 +1,81 @@
+package db
+
+import (
+	"errors"
+	"github.com/dgraph-io/badger"
+	"github.com/shibukawa/configdir"
+	"os"
+	"path/filepath"
+	"sync"
+)
+
+var DB *badger.DB
+var onceDB sync.Once
+
+func OpenDB() (db *badger.DB, err error) {
+	onceDB.Do(func() {
+		// Open the data.db file. It will be created if it doesn't exist.
+		configDirs := configdir.New("SocialNetworksNews", "API")
+		filePath := filepath.ToSlash(configDirs.QueryFolders(configdir.Global)[0].Path)
+
+		if _, StatErr := os.Stat(filePath + "/data/"); os.IsNotExist(StatErr) {
+			MkdirErr := os.MkdirAll(filePath+"/data/", 0700)
+			if MkdirErr != nil {
+				err = MkdirErr
+				return
+			}
+		}
+		if _, StatErr := os.Stat(filePath + "/data/cache/"); os.IsNotExist(StatErr) {
+			MkdirErr := os.MkdirAll(filePath+"/data/cache/", 0700)
+			if MkdirErr != nil {
+				err = MkdirErr
+				return
+			}
+		}
+		opts := badger.DefaultOptions
+		opts.SyncWrites = false
+		opts.Dir = filePath + "/data/cache"
+		opts.ValueDir = filePath + "/data/cache"
+
+		if _, StatErr := os.Stat(filePath + "/data/cache/LOCK"); StatErr == nil {
+			DeleteErr := os.Remove(filePath + "/data/cache/LOCK")
+			if DeleteErr != nil {
+				err = DeleteErr
+				return
+			}
+		}
+
+		expDB, DBErr := badger.Open(opts)
+		if DBErr != nil {
+			err = DBErr
+			return
+		}
+		DB = expDB
+	})
+
+	if DB == nil {
+		err = errors.New("missing DB")
+		return
+	}
+
+	db = DB
+	return
+}
+
+// Get deduplicates all the Gets inside the Database to not repeat that much code.
+func Get(txn *badger.Txn, key []byte) (result []byte, err error) {
+	item, QueryErr := txn.Get(key)
+	if QueryErr != nil && QueryErr != badger.ErrKeyNotFound {
+		err = QueryErr
+		return
+	}
+	if QueryErr != badger.ErrKeyNotFound {
+		valueByte, valueErr := item.Value()
+		result = valueByte
+		if valueErr != nil {
+			err = valueErr
+			return
+		}
+	}
+	return
+}
