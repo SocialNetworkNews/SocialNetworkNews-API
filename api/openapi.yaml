@@ -3,6 +3,12 @@ info:
   title: Social Networks News Project API
   description: API Definition for the Social Networks News Project
   version: 0.0.0
+  contact:
+    name: API Support
+    email: freifunknews@nordgedanken.blog
+  license:
+    name: GPL-3.0
+    url: https://github.com/SocialNetworkNews/SocialNetworkNews_API/raw/master/LICENSE
 
 servers:
   - url: https://socialnetworksnews.nordgedanken.blog/api
@@ -15,6 +21,64 @@ tags:
     description: "Get user Data"
 
 paths:
+  /papers:
+    get:
+      tags:
+        - paper
+      summary: Get a List of all available Papers
+      responses:
+        '200':    # status code
+          description: A JSON array containing a short info about available Papers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    name:
+                      type: "string"
+                    uuid:
+                      type: "string"
+  /paper/{uuid}:
+    get:
+      tags:
+        - paper
+      summary: Get more details about the Paper
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the paper
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':    # status code
+          description: A JSON array containing a short info about available Papers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  uuid:
+                    type: string
+                  description:
+                    type: string
+                  author:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      profile_image_url:
+                        type: string
+                      twitter_profile:
+                        type: string
+                      google_profile:
+                        type: string
+                      github_profile:
+                        type: string
   /paper/{uuid}/yesterday:
     get:
       tags:
@@ -26,8 +90,8 @@ paths:
           description: UUID of the paper
           required: true
           schema:
-            type: "integer"
-            format: "int64"
+            type: integer
+            format: int64
       responses:
         '200':    # status code
           description: A JSON array of Posts (currently Tweets)
@@ -38,25 +102,25 @@ paths:
                 items: 
                   properties:
                     username:
-                      type: "string"
+                      type: string
                     user_id:
-                      type: "string"
+                      type: string
                     display_name:
-                      type: "string"
+                      type: string
                     userprofile_link:
-                      type: "string"
+                      type: string
                     text:
-                      type: "string"
+                      type: string
                     image_urls:
-                      type: "array"
+                      type: array
                       items:
-                        type: "string"
+                        type: string
                     created_at:
-                      type: "string"
+                      type: string
                     favorites:
-                      type: "string"
+                      type: string
                     retweets:
-                      type: "string"
+                      type: string
                     retweet:
-                      type: "boolean"
+                      type: boolean
                       default: false
