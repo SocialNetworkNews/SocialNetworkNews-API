@@ -9,6 +9,7 @@ import (
 	"github.com/dgraph-io/badger"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -49,15 +50,83 @@ type Author struct {
 }
 
 func Papers(w http.ResponseWriter, r *http.Request) {
-	papers, err := getPapers()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	switch r.Method {
+	case "GET":
+		papers, err := getPapers()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("API-VERSION", "0.0.0")
+		w.WriteHeader(http.StatusOK)
+		w.Write(papers)
+	case "POST":
+		decoder := json.NewDecoder(r.Body)
+		var t []Paper
+		err := decoder.Decode(&t)
+		if err != nil {
+			panic(err)
+		}
+		defer r.Body.Close()
+
+		papers, err := addPapers(t)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("API-VERSION", "0.0.0")
+		w.WriteHeader(http.StatusOK)
+		w.Write(papers)
+	}
+}
+
+func addPapers(data []Paper) ([]byte, error) {
+	papersDB, openErr := db.OpenDB()
+	if openErr != nil {
+		return nil, openErr
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("API-VERSION", "0.0.0")
-	w.WriteHeader(http.StatusOK)
-	w.Write(papers)
+	var papers []Paper
+
+	for _, p := range data {
+		puuid := uuid.NewV4()
+		newUUID := puuid.String()
+		newName := p.Name
+		newDesc := p.Description
+		newAuthor := p.Author.UUID
+
+		DBErr := papersDB.Update(func(txn *badger.Txn) error {
+			nameErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|name", newUUID)), []byte(newName))
+			if nameErr != nil {
+				return nameErr
+			}
+
+			descErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|description", newUUID)), []byte(newDesc))
+			if descErr != nil {
+				return descErr
+			}
+
+			return txn.Set([]byte(fmt.Sprintf("papers|paper|%s|author", newUUID)), []byte(newAuthor))
+		})
+		if DBErr != nil {
+			return nil, DBErr
+		}
+
+		paper := Paper{}
+		paper.UUID = newUUID
+		paper.Name = newName
+
+		papers = append(papers, paper)
+	}
+
+	papersArray, err := json.Marshal(papers)
+	if err != nil {
+		return nil, err
+	}
+
+	return papersArray, nil
 }
 
 func getPapers() ([]byte, error) {

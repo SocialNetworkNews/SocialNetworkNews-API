@@ -54,7 +54,8 @@ paths:
         content:
           application/json:
             schema:
-                type: object
+              type: array
+              items:
                 properties:
                   name:
                     type: string
