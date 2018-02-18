@@ -154,7 +154,7 @@ func getPapers() ([]byte, error) {
 			key := item.Key()
 			stringKey := fmt.Sprintf("%s", key)
 			stringKeySlice := strings.Split(stringKey, "|")
-			stringKeyEnd := stringKeySlice[len(stringKeySlice)-1]
+			stringKeyEnd := stringKeySlice[len(stringKeySlice)-2]
 			paper := Paper{}
 			if known[stringKeyEnd] {
 				continue
@@ -162,9 +162,9 @@ func getPapers() ([]byte, error) {
 			known[stringKeyEnd] = true
 			paper.UUID = stringKeyEnd
 
-			nameResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s|%s|name", prefix, stringKeyEnd)))
+			nameResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s%s|name", prefix, stringKeyEnd)))
 			if QueryErr != nil {
-				return errors.WithMessage(QueryErr, fmt.Sprintf("%s|%s|name", prefix, stringKeyEnd))
+				return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|name", prefix, stringKeyEnd))
 			}
 
 			paper.Name = fmt.Sprintf("%s", nameResult)
