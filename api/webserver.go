@@ -92,7 +92,10 @@ func addPapers(data []Paper) ([]byte, error) {
 	var papers []Paper
 
 	for _, p := range data {
-		puuid := uuid.NewV4()
+		puuid, UUIDerr := uuid.NewV4()
+		if UUIDerr != nil {
+			return nil, UUIDerr
+		}
 		newUUID := puuid.String()
 		newName := p.Name
 		newDesc := p.Description
