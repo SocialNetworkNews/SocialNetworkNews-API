@@ -1,0 +1,62 @@
+openapi: 3.0.0
+info:
+  title: Social Networks News Project API
+  description: API Definition for the Social Networks News Project
+  version: 0.0.0
+
+servers:
+  - url: https://socialnetworksnews.nordgedanken.blog/api
+  - url: https://freifunknews.nordgedanken.blog/api
+
+tags:
+  - name: "paper"
+    description: "Everything that is used for papers"
+  - name: "user"
+    description: "Get user Data"
+
+paths:
+  /paper/{uuid}/yesterday:
+    get:
+      tags:
+        - paper
+      summary: Get the Data that should get displayed of yesterday
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the paper
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        '200':    # status code
+          description: A JSON array of Posts (currently Tweets)
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  properties:
+                    username:
+                      type: "string"
+                    user_id:
+                      type: "string"
+                    display_name:
+                      type: "string"
+                    userprofile_link:
+                      type: "string"
+                    text:
+                      type: "string"
+                    image_urls:
+                      type: "array"
+                      items:
+                        type: "string"
+                    created_at:
+                      type: "string"
+                    favorites:
+                      type: "string"
+                    retweets:
+                      type: "string"
+                    retweet:
+                      type: "boolean"
+                      default: false
