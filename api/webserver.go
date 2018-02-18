@@ -20,8 +20,9 @@ import (
 
 func Yesterday(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	uuid := vars["uuid"]
-	fmt.Println("UUID: ", uuid)
+	//TODO Use Database or File Structure (probably File Structure)
+	uuidVar := vars["uuid"]
+	fmt.Println("UUID: ", uuidVar)
 
 	tweets, err := getTweets()
 	if err != nil {

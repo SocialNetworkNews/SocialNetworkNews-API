@@ -22,7 +22,7 @@ func main() {
 	fmt.Println("Logged in!")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/papers", web_api.Papers).Methods("GET")
+	r.HandleFunc("/papers", web_api.Papers).Methods("GET").Methods("POST")
 
 	p := r.PathPrefix("/paper/{uuid}").Subrouter()
 	p.HandleFunc("/yesterday", web_api.Yesterday).Methods("GET")
