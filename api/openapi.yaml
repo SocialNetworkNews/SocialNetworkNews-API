@@ -29,6 +29,12 @@ paths:
       responses:
         '200':    # status code
           description: A JSON array containing a short info about available Papers
+          headers:
+            API-VERSION:
+              schema:
+                type: string
+                default: 0.0.0
+              description: Current API Version.
           content:
             application/json:
               schema:
@@ -55,6 +61,12 @@ paths:
       responses:
         '200':    # status code
           description: A JSON array containing a short info about available Papers
+          headers:
+            API-VERSION:
+              schema:
+                type: string
+                default: 0.0.0
+              description: Current API Version.
           content:
             application/json:
               schema:
@@ -95,6 +107,12 @@ paths:
       responses:
         '200':    # status code
           description: A JSON array of Posts (currently Tweets)
+          headers:
+            API-VERSION:
+              schema:
+                type: string
+                default: 0.0.0
+              description: Current API Version.
           content:
             application/json:
               schema: 
