@@ -59,6 +59,8 @@ paths:
                 properties:
                   name:
                     type: string
+                  paper_image:
+                    type: string
                   description:
                     type: string
                   author:

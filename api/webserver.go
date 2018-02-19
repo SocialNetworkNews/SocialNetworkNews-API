@@ -38,6 +38,7 @@ type Paper struct {
 	Name        string `json:"name,omitempty"`
 	UUID        string `json:"uuid,omitempty"`
 	Description string `json:"description,omitempty"`
+	PaperImage  string `json:"paper_image"`
 	Author      `json:",omitempty"`
 }
 
@@ -100,6 +101,7 @@ func addPapers(data []Paper) ([]byte, error) {
 		newName := p.Name
 		newDesc := p.Description
 		newAuthor := p.Author.UUID
+		newPIMG := p.PaperImage
 
 		DBErr := papersDB.Update(func(txn *badger.Txn) error {
 			nameErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|name", newUUID)), []byte(newName))
@@ -110,6 +112,11 @@ func addPapers(data []Paper) ([]byte, error) {
 			descErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|description", newUUID)), []byte(newDesc))
 			if descErr != nil {
 				return descErr
+			}
+
+			pIMGErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|image", newUUID)), []byte(newPIMG))
+			if pIMGErr != nil {
+				return pIMGErr
 			}
 
 			return txn.Set([]byte(fmt.Sprintf("papers|paper|%s|author", newUUID)), []byte(newAuthor))
@@ -167,6 +174,12 @@ func getPapers() ([]byte, error) {
 				return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|name", prefix, stringKeyEnd))
 			}
 
+			paperIMGResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s%s|image", prefix, stringKeyEnd)))
+			if QueryErr != nil {
+				return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|image", prefix, stringKeyEnd))
+			}
+
+			paper.PaperImage = fmt.Sprintf("%s", paperIMGResult)
 			paper.Name = fmt.Sprintf("%s", nameResult)
 
 			papers = append(papers, paper)
