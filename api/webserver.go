@@ -38,7 +38,7 @@ type Paper struct {
 	Name        string `json:"name,omitempty"`
 	UUID        string `json:"uuid,omitempty"`
 	Description string `json:"description,omitempty"`
-	PaperImage  string `json:"paper_image"`
+	PaperImage  string `json:"paper_image,omitempty"`
 	Author      `json:",omitempty"`
 }
 
