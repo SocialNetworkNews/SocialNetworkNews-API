@@ -128,6 +128,7 @@ func addPapers(data []Paper) ([]byte, error) {
 		paper := Paper{}
 		paper.UUID = newUUID
 		paper.Name = newName
+		paper.PaperImage = newPIMG
 
 		papers = append(papers, paper)
 	}
