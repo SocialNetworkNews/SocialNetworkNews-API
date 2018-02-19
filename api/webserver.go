@@ -55,7 +55,7 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 	var data []byte
 	switch r.Method {
 	case "GET":
-		papers, err := getPapers(false)
+		papers, err := getPapers(false, "")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -86,10 +86,13 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 }
 
 func PaperFunc(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uuidVar := vars["uuid"]
+
 	var data []byte
 	switch r.Method {
 	case "GET":
-		papers, err := getPapers(true)
+		papers, err := getPapers(true, uuidVar)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -160,7 +163,7 @@ func addPapers(data []Paper) ([]byte, error) {
 	return papersArray, nil
 }
 
-func getPapers(full bool) ([]byte, error) {
+func getPapers(full bool, uuid string) ([]byte, error) {
 	papersDB, openErr := db.OpenDB()
 	if openErr != nil {
 		return nil, openErr
@@ -172,7 +175,12 @@ func getPapers(full bool) ([]byte, error) {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
 		it := txn.NewIterator(opts)
-		prefix := []byte("papers|paper|")
+		var prefix []byte
+		if full {
+			prefix = []byte(fmt.Sprintf("papers|paper|%s", uuid))
+		} else {
+			prefix = []byte("papers|paper|")
+		}
 
 		known := make(map[string]bool)
 
@@ -181,7 +189,13 @@ func getPapers(full bool) ([]byte, error) {
 			key := item.Key()
 			stringKey := fmt.Sprintf("%s", key)
 			stringKeySlice := strings.Split(stringKey, "|")
-			stringKeyEnd := stringKeySlice[len(stringKeySlice)-2]
+			var stringKeyEnd string
+			if full {
+				stringKeyEnd = ""
+			} else {
+				stringKeyEnd = stringKeySlice[len(stringKeySlice)-2]
+			}
+
 			paper := Paper{}
 			if known[stringKeyEnd] {
 				continue
@@ -217,9 +231,18 @@ func getPapers(full bool) ([]byte, error) {
 		return nil
 	})
 
-	papersArray, err := json.Marshal(papers)
-	if err != nil {
-		return nil, err
+	var papersArray []byte
+	var err error
+	if full {
+		papersArray, err = json.Marshal(papers[0])
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		papersArray, err = json.Marshal(papers)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return papersArray, nil
