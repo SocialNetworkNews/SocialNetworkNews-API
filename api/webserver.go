@@ -55,9 +55,10 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 	var data []byte
 	switch r.Method {
 	case "GET":
-		papers, err := getPapers()
+		papers, err := getPapers(false)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		data = papers
@@ -66,14 +67,34 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 		var t []Paper
 		err := decoder.Decode(&t)
 		if err != nil {
-			panic(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		defer r.Body.Close()
 
 		papers, err := addPapers(t)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		data = papers
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("API-VERSION", "0.0.0")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
+func PaperFunc(w http.ResponseWriter, r *http.Request) {
+	var data []byte
+	switch r.Method {
+	case "GET":
+		papers, err := getPapers(true)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		data = papers
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -139,7 +160,7 @@ func addPapers(data []Paper) ([]byte, error) {
 	return papersArray, nil
 }
 
-func getPapers() ([]byte, error) {
+func getPapers(full bool) ([]byte, error) {
 	papersDB, openErr := db.OpenDB()
 	if openErr != nil {
 		return nil, openErr
@@ -178,8 +199,18 @@ func getPapers() ([]byte, error) {
 				return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|image", prefix, stringKeyEnd))
 			}
 
+			descResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s%s|description", prefix, stringKeyEnd)))
+			if QueryErr != nil {
+				return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|description", prefix, stringKeyEnd))
+			}
+
 			paper.PaperImage = fmt.Sprintf("%s", paperIMGResult)
 			paper.Name = fmt.Sprintf("%s", nameResult)
+			paper.Description = fmt.Sprintf("%s", descResult)
+
+			if full {
+				//TODO Add Author Object!
+			}
 
 			papers = append(papers, paper)
 		}

@@ -25,6 +25,7 @@ func main() {
 	r.HandleFunc("/papers", web_api.Papers).Methods("GET", "POST")
 
 	p := r.PathPrefix("/paper/{uuid}").Subrouter()
+	r.HandleFunc("/", web_api.PaperFunc).Methods("GET")
 	p.HandleFunc("/yesterday", web_api.Yesterday).Methods("GET")
 	// cors.Default() setup the middleware with default options being
 	// all origins accepted with simple methods (GET, POST). See
