@@ -52,6 +52,7 @@ type Author struct {
 }
 
 func Papers(w http.ResponseWriter, r *http.Request) {
+	var data []byte
 	switch r.Method {
 	case "GET":
 		papers, err := getPapers()
@@ -59,10 +60,7 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("API-VERSION", "0.0.0")
-		w.WriteHeader(http.StatusOK)
-		w.Write(papers)
+		data = papers
 	case "POST":
 		decoder := json.NewDecoder(r.Body)
 		var t []Paper
@@ -76,12 +74,12 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("API-VERSION", "0.0.0")
-		w.WriteHeader(http.StatusOK)
-		w.Write(papers)
+		data = papers
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("API-VERSION", "0.0.0")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
 
 func addPapers(data []Paper) ([]byte, error) {
