@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/db"
-	ownErrors "github.com/SocialNetworkNews/SocialNetworkNews_API/errors"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
 	"github.com/dgraph-io/badger"
 	"github.com/gorilla/mux"
@@ -20,6 +19,19 @@ import (
 	"time"
 )
 
+type TweetsError struct {
+	err        string //error description
+	statusCode int    // HTTP Code
+}
+
+func (e *TweetsError) Error() string {
+	return e.err
+}
+
+func (e *TweetsError) StatusCode() int {
+	return e.statusCode
+}
+
 func Yesterday(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	//TODO Use Database or File Structure (probably File Structure)
@@ -28,7 +40,7 @@ func Yesterday(w http.ResponseWriter, r *http.Request) {
 
 	tweets, err := getTweets()
 	if err != nil {
-		if tErr, ok := err.(*ownErrors.TweetsError); ok {
+		if tErr, ok := err.(*TweetsError); ok {
 			http.Error(w, tErr.Error(), tErr.StatusCode())
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -266,7 +278,7 @@ func getTweets() ([]byte, error) {
 
 	fo, err := os.Open(dataFilePath)
 	if err != nil {
-		return nil, &ownErrors.TweetsError{err.Error(), 404}
+		return nil, &TweetsError{err.Error(), 404}
 	}
 
 	// close fo on exit and check for its returned error
