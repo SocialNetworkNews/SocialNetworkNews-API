@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/shibukawa/configdir"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"path/filepath"
@@ -23,8 +22,7 @@ type TwitterConfig struct {
 }
 
 func ConfigPath() string {
-	configDirs := configdir.New("SocialNetworksNews", "API")
-	filePath := filepath.ToSlash(configDirs.QueryFolders(configdir.System)[0].Path)
+	filePath := filepath.ToSlash("/etc/SocialNetworksNews")
 	return filePath
 }
 
