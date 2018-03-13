@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/db"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
 	"github.com/dgraph-io/badger"
@@ -254,8 +255,9 @@ func getTweets() ([]byte, error) {
 	// open output file
 	currentTime := time.Now().Local()
 	currentTime = currentTime.AddDate(0, 0, -1)
+	filePath := config.ConfigPath()
 	filename := fmt.Sprintf("tweets_%s.csv", currentTime.Format("2006_01_02"))
-	dataFilePath := filepath.Join(".", "data", filename)
+	dataFilePath := filepath.Join(filePath, "data", filename)
 
 	fo, err := os.Open(dataFilePath)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/anaconda"
 	"github.com/dghubble/oauth1"
 	"github.com/dghubble/oauth1/twitter"
@@ -129,7 +130,8 @@ func (t *TwitterAPI) writeCSV(tweet []string) error {
 		os.Mkdir(dataPath, os.ModePerm)
 	}
 	filename := fmt.Sprintf("tweets_%s.csv", currentTime.Format("2006_01_02"))
-	dataFilePath := filepath.Join(".", "data", filename)
+	filePath := config.ConfigPath()
+	dataFilePath := filepath.Join(filePath, "data", filename)
 
 	// write the file
 	f, err := os.OpenFile(dataFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)

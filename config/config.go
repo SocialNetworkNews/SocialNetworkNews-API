@@ -1,8 +1,10 @@
 package config
 
 import (
+	"github.com/shibukawa/configdir"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"path/filepath"
 	"sync"
 )
 
@@ -20,11 +22,18 @@ type TwitterConfig struct {
 	Hashtags       []string `yaml:"hashtags,flow"`
 }
 
+func ConfigPath() string {
+	configDirs := configdir.New("SocialNetworksNews", "API")
+	filePath := filepath.ToSlash(configDirs.QueryFolders(configdir.Global)[0].Path)
+	return filePath
+}
+
 func GetConfig() (*Config, error) {
 	var gFerr error
 	configOnce.Do(func() {
 		config := &Config{}
-		b, err := ioutil.ReadFile("config.yaml") // just pass the file name
+		filePath := ConfigPath()
+		b, err := ioutil.ReadFile(filepath.Join(filePath, "config.yaml")) // just pass the file name
 		if err != nil {
 			gFerr = err
 			return
