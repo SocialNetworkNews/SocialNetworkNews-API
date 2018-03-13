@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/db"
+	ownErrors "github.com/SocialNetworkNews/SocialNetworkNews_API/errors"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
 	"github.com/dgraph-io/badger"
 	"github.com/gorilla/mux"
@@ -27,7 +28,11 @@ func Yesterday(w http.ResponseWriter, r *http.Request) {
 
 	tweets, err := getTweets()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if tErr, ok := err.(*ownErrors.TweetsError); ok {
+			http.Error(w, tErr.Error(), tErr.StatusCode())
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("API-VERSION", "0.0.0")
@@ -261,7 +266,7 @@ func getTweets() ([]byte, error) {
 
 	fo, err := os.Open(dataFilePath)
 	if err != nil {
-		return nil, err
+		return nil, &ownErrors.TweetsError{err.Error(), 404}
 	}
 
 	// close fo on exit and check for its returned error
