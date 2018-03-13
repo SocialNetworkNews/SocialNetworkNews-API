@@ -24,7 +24,7 @@ type TwitterConfig struct {
 
 func ConfigPath() string {
 	configDirs := configdir.New("SocialNetworksNews", "API")
-	filePath := filepath.ToSlash(configDirs.QueryFolders(configdir.Global)[0].Path)
+	filePath := filepath.ToSlash(configDirs.QueryFolders(configdir.System)[0].Path)
 	return filePath
 }
 
