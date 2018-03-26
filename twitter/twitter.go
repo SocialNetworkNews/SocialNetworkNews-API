@@ -29,6 +29,7 @@ type Tweet struct {
 	UserID          string   `json:"user_id"`
 	DisplayName     string   `json:"display_name"`
 	UserProfileLink string   `json:"userprofile_link"`
+	TweetLink       string   `json:"tweet_link"`
 	Text            string   `json:"text"`
 	IMGUrls         []string `json:"image_urls"`
 	CreatedAt       string   `json:"created_at"`
@@ -232,6 +233,7 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			JT.UserID = t.User.IdStr
 			JT.DisplayName = t.User.Name
 			JT.UserProfileLink = "https://twitter.com/" + t.User.ScreenName
+			JT.TweetLink = "https://twitter.com/" + t.User.ScreenName + "/" + t.IdStr
 			if t.ExtendedTweet.FullText != "" {
 				JT.Text = t.ExtendedTweet.FullText
 			} else if t.FullText != "" {
