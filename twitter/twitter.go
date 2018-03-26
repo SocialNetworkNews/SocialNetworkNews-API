@@ -233,7 +233,7 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			JT.UserID = t.User.IdStr
 			JT.DisplayName = t.User.Name
 			JT.UserProfileLink = "https://twitter.com/" + t.User.ScreenName
-			JT.TweetLink = "https://twitter.com/" + t.User.ScreenName + "/" + t.IdStr
+			JT.TweetLink = "https://twitter.com/" + t.User.ScreenName + "/status/" + t.IdStr
 			if t.ExtendedTweet.FullText != "" {
 				JT.Text = t.ExtendedTweet.FullText
 			} else if t.FullText != "" {
