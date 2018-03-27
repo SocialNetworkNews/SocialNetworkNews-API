@@ -234,7 +234,7 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 				JT.Username = t.RetweetedStatus.User.ScreenName
 				JT.UserID = t.RetweetedStatus.User.IdStr
 
-				JT.DisplayName = t.User.Name
+				JT.DisplayName = t.RetweetedStatus.User.Name
 				JT.UserProfileLink = "https://twitter.com/" + t.RetweetedStatus.User.ScreenName
 				JT.TweetLink = "https://twitter.com/" + t.RetweetedStatus.User.ScreenName + "/status/" + t.RetweetedStatus.IdStr
 				if t.RetweetedStatus.ExtendedTweet.FullText != "" {
