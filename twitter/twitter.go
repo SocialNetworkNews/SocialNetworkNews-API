@@ -25,17 +25,21 @@ type Tweets struct {
 }
 
 type Tweet struct {
-	Username        string   `json:"username"`
-	UserID          string   `json:"user_id"`
-	DisplayName     string   `json:"display_name"`
-	UserProfileLink string   `json:"userprofile_link"`
-	TweetLink       string   `json:"tweet_link"`
-	Text            string   `json:"text"`
-	IMGUrls         []string `json:"image_urls"`
-	CreatedAt       string   `json:"created_at"`
-	Favorites       string   `json:"favorites"`
-	Retweets        string   `json:"retweets"`
-	Retweet         bool     `json:"retweet"`
+	Username                 string   `json:"username"`
+	UserID                   string   `json:"user_id"`
+	DisplayName              string   `json:"display_name"`
+	UserProfileLink          string   `json:"userprofile_link"`
+	RetweetByUsername        string   `json:"retweetby_username"`
+	RetweetByUserID          string   `json:"retweetby_user_id"`
+	RetweetByDisplayName     string   `json:"retweetby_display_name"`
+	RetweetByUserProfileLink string   `json:"retweetby_userprofile_link"`
+	TweetLink                string   `json:"tweet_link"`
+	Text                     string   `json:"text"`
+	IMGUrls                  []string `json:"image_urls"`
+	CreatedAt                string   `json:"created_at"`
+	Favorites                string   `json:"favorites"`
+	Retweets                 string   `json:"retweets"`
+	Retweet                  bool     `json:"retweet"`
 }
 
 type TwitterAPI struct {
@@ -236,6 +240,12 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 
 				JT.DisplayName = t.RetweetedStatus.User.Name
 				JT.UserProfileLink = "https://twitter.com/" + t.RetweetedStatus.User.ScreenName
+
+				JT.RetweetByUsername = t.User.ScreenName
+				JT.RetweetByUserID = t.User.IdStr
+				JT.RetweetByDisplayName = t.User.Name
+				JT.RetweetByUserProfileLink = "https://twitter.com/" + t.User.ScreenName
+
 				JT.TweetLink = "https://twitter.com/" + t.RetweetedStatus.User.ScreenName + "/status/" + t.RetweetedStatus.IdStr
 				if t.RetweetedStatus.ExtendedTweet.FullText != "" {
 					JT.Text = t.RetweetedStatus.ExtendedTweet.FullText
