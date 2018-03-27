@@ -229,30 +229,62 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 				JT.Retweet = false
 			}
 			tweetsSlice[t.IdStr] = true
-			JT.Username = t.User.ScreenName
-			JT.UserID = t.User.IdStr
-			JT.DisplayName = t.User.Name
-			JT.UserProfileLink = "https://twitter.com/" + t.User.ScreenName
-			JT.TweetLink = "https://twitter.com/" + t.User.ScreenName + "/status/" + t.IdStr
-			if t.ExtendedTweet.FullText != "" {
-				JT.Text = t.ExtendedTweet.FullText
-			} else if t.FullText != "" {
-				JT.Text = t.FullText
+			// If we got a retweet get the data of the original tweet
+			if JT.Retweet {
+				JT.Username = t.RetweetedStatus.User.ScreenName
+				JT.UserID = t.RetweetedStatus.User.IdStr
+
+				JT.DisplayName = t.User.Name
+				JT.UserProfileLink = "https://twitter.com/" + t.RetweetedStatus.User.ScreenName
+				JT.TweetLink = "https://twitter.com/" + t.RetweetedStatus.User.ScreenName + "/status/" + t.RetweetedStatus.IdStr
+				if t.RetweetedStatus.ExtendedTweet.FullText != "" {
+					JT.Text = t.RetweetedStatus.ExtendedTweet.FullText
+				} else if t.RetweetedStatus.FullText != "" {
+					JT.Text = t.RetweetedStatus.FullText
+				} else {
+					JT.Text = t.RetweetedStatus.Text
+				}
+
+				tweetTime, err := t.RetweetedStatus.CreatedAtTime()
+				if err != nil {
+					return nil, err
+				}
+				JT.CreatedAt = tweetTime.Format("02.01.2006")
+				JT.Favorites = strconv.Itoa(t.RetweetedStatus.FavoriteCount)
+				JT.Retweets = strconv.Itoa(t.RetweetedStatus.RetweetCount)
+
+				for _, i := range t.RetweetedStatus.Entities.Media {
+					if i.Type == "photo" {
+						JT.IMGUrls = append(JT.IMGUrls, i.Media_url_https)
+					}
+				}
 			} else {
-				JT.Text = t.Text
-			}
+				JT.Username = t.User.ScreenName
+				JT.UserID = t.User.IdStr
 
-			tweetTime, err := t.CreatedAtTime()
-			if err != nil {
-				return nil, err
-			}
-			JT.CreatedAt = tweetTime.Format("02.01.2006")
-			JT.Favorites = strconv.Itoa(t.FavoriteCount)
-			JT.Retweets = strconv.Itoa(t.RetweetCount)
+				JT.DisplayName = t.User.Name
+				JT.UserProfileLink = "https://twitter.com/" + t.User.ScreenName
+				JT.TweetLink = "https://twitter.com/" + t.User.ScreenName + "/status/" + t.IdStr
+				if t.ExtendedTweet.FullText != "" {
+					JT.Text = t.ExtendedTweet.FullText
+				} else if t.FullText != "" {
+					JT.Text = t.FullText
+				} else {
+					JT.Text = t.Text
+				}
 
-			for _, i := range t.Entities.Media {
-				if i.Type == "photo" {
-					JT.IMGUrls = append(JT.IMGUrls, i.Media_url_https)
+				tweetTime, err := t.CreatedAtTime()
+				if err != nil {
+					return nil, err
+				}
+				JT.CreatedAt = tweetTime.Format("02.01.2006")
+				JT.Favorites = strconv.Itoa(t.FavoriteCount)
+				JT.Retweets = strconv.Itoa(t.RetweetCount)
+
+				for _, i := range t.Entities.Media {
+					if i.Type == "photo" {
+						JT.IMGUrls = append(JT.IMGUrls, i.Media_url_https)
+					}
 				}
 			}
 
