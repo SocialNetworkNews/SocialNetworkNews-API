@@ -220,12 +220,7 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 				continue
 			}
 			if t.RetweetedStatus != nil {
-				if tweetsSlice[t.RetweetedStatus.IdStr] {
-					continue
-				}
 				JT.Retweet = true
-				tweetsSlice[t.IdStr] = true
-				tweetsSlice[t.RetweetedStatus.IdStr] = true
 				if retweets[t.RetweetedStatus.IdStr] {
 					continue
 				} else {
@@ -236,8 +231,8 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 				}
 			} else {
 				JT.Retweet = false
-				tweetsSlice[t.IdStr] = true
 			}
+			tweetsSlice[t.IdStr] = true
 			// If we got a retweet get the data of the original tweet
 			if JT.Retweet {
 				JT.Username = t.RetweetedStatus.User.ScreenName
