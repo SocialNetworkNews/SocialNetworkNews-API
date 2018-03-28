@@ -219,10 +219,10 @@ func (t *TwitterAPI) GetTweets(tweets []int64) ([]byte, error) {
 			if tweetsSlice[t.IdStr] {
 				continue
 			}
-			if tweetsSlice[t.RetweetedStatus.IdStr] {
-				continue
-			}
 			if t.RetweetedStatus != nil {
+				if tweetsSlice[t.RetweetedStatus.IdStr] {
+					continue
+				}
 				JT.Retweet = true
 				tweetsSlice[t.IdStr] = true
 				tweetsSlice[t.RetweetedStatus.IdStr] = true
