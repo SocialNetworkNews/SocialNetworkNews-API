@@ -38,9 +38,12 @@ func main() {
 	p := r.PathPrefix("/paper/{uuid}").Subrouter()
 	p.HandleFunc("/yesterday", web_api.Yesterday).Methods("GET")
 
-	l := r.PathPrefix("/login").Subrouter()
-	l.Handle("/twitter", login.LoginHandler(login.TConfig, nil))
-	l.Handle("/twitter/callback", tLogin.CallbackHandler(login.TConfig, login.IssueSession(), nil))
+	lo := r.PathPrefix("/logout").Subrouter()
+	lo.HandleFunc("/twitter", login.LogoutHandler)
+
+	li := r.PathPrefix("/login").Subrouter()
+	li.Handle("/twitter", login.LoginHandler(login.TConfig, nil))
+	li.Handle("/twitter/callback", tLogin.CallbackHandler(login.TConfig, login.IssueSession(), nil))
 
 	// cors.Default() setup the middleware with default options being
 	// all origins accepted with simple methods (GET, POST). See

@@ -40,6 +40,14 @@ func IssueSession() http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+// LogoutHandler destroys the session on POSTs and redirects to home.
+func LogoutHandler(w http.ResponseWriter, req *http.Request) {
+	if req.Method == "POST" {
+		sessionStore.Destroy(w, sessionName)
+	}
+	http.Redirect(w, req, "/", http.StatusFound)
+}
+
 // LoginHandler handles Twitter login requests by obtaining a request token and
 // redirecting to the authorization URL.
 func LoginHandler(config *oauth1.Config, failure http.Handler) http.Handler {
