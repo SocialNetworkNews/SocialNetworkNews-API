@@ -25,14 +25,10 @@ func main() {
 	api.Login(configData.ConsumerKey, configData.ConsumerSecret)
 	fmt.Println("Logged in!")
 
-	TlConfig := &oauth1.Config{
+	login.TConfig = &oauth1.Config{
 		ConsumerKey:    configData.ConsumerKey,
 		ConsumerSecret: configData.ConsumerSecret,
 		Endpoint:       twitterOAuth1.AuthorizeEndpoint,
-	}
-
-	if configData.HTTPS {
-		TlConfig.CallbackURL = "https://" + configData.Domain + "/login/twitter/callback"
 	}
 
 	r := mux.NewRouter()
@@ -43,8 +39,8 @@ func main() {
 	p.HandleFunc("/yesterday", web_api.Yesterday).Methods("GET")
 
 	l := r.PathPrefix("/login").Subrouter()
-	l.Handle("/twitter", tLogin.LoginHandler(TlConfig, nil))
-	l.Handle("/twitter/callback", tLogin.CallbackHandler(TlConfig, login.IssueSession(), nil))
+	l.Handle("/twitter", login.LoginHandler(login.TConfig, nil))
+	l.Handle("/twitter/callback", tLogin.CallbackHandler(login.TConfig, login.IssueSession(), nil))
 
 	// cors.Default() setup the middleware with default options being
 	// all origins accepted with simple methods (GET, POST). See

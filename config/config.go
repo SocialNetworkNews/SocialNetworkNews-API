@@ -12,12 +12,6 @@ var configOnce sync.Once
 
 type Config struct {
 	TwitterConfig `yaml:"twitter"`
-	ServerConfig  `yaml:"server"`
-}
-
-type ServerConfig struct {
-	Domain string `yaml:"domain"`
-	HTTPS  bool   `yaml:"https"`
 }
 
 type TwitterConfig struct {
