@@ -3,8 +3,12 @@ package main
 import (
 	"fmt"
 	web_api "github.com/SocialNetworkNews/SocialNetworkNews_API/api"
+	"github.com/SocialNetworkNews/SocialNetworkNews_API/api/login"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
+	tLogin "github.com/dghubble/gologin/twitter"
+	"github.com/dghubble/oauth1"
+	twitterOAuth1 "github.com/dghubble/oauth1/twitter"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"log"
@@ -21,12 +25,27 @@ func main() {
 	api.Login(configData.ConsumerKey, configData.ConsumerSecret)
 	fmt.Println("Logged in!")
 
+	TlConfig := &oauth1.Config{
+		ConsumerKey:    configData.ConsumerKey,
+		ConsumerSecret: configData.ConsumerSecret,
+		Endpoint:       twitterOAuth1.AuthorizeEndpoint,
+	}
+
+	if configData.HTTPS {
+		TlConfig.CallbackURL = "https://" + configData.Domain + "/login/twitter/callback"
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/papers", web_api.Papers).Methods("GET", "POST")
 	r.HandleFunc("/paper/{uuid}", web_api.PaperFunc).Methods("GET")
 
 	p := r.PathPrefix("/paper/{uuid}").Subrouter()
 	p.HandleFunc("/yesterday", web_api.Yesterday).Methods("GET")
+
+	l := r.PathPrefix("/login").Subrouter()
+	l.Handle("/twitter", tLogin.LoginHandler(TlConfig, nil))
+	l.Handle("/twitter/callback", tLogin.CallbackHandler(TlConfig, login.IssueSession(), nil))
+
 	// cors.Default() setup the middleware with default options being
 	// all origins accepted with simple methods (GET, POST). See
 	// documentation below for more options.

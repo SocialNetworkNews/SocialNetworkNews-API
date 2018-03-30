@@ -34,7 +34,7 @@ func (e *TweetsError) StatusCode() int {
 
 func Yesterday(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	//TODO Use Database or File Structure (probably File Structure)
+	// TODO Use Database or File Structure (probably File Structure)
 	uuidVar := vars["uuid"]
 	fmt.Println("UUID: ", uuidVar)
 
