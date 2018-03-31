@@ -156,7 +156,7 @@ func IssueSession() http.Handler {
 		w.Header().Set("ID", twitterUser.IDStr)
 		domain := req.Host
 		log.Println("domain:", domain)
-		http.Redirect(w, req, domain, http.StatusFound)
+		w.WriteHeader(http.StatusOK)
 	}
 	return http.HandlerFunc(fn)
 }
