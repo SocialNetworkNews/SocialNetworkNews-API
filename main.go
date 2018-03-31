@@ -53,6 +53,8 @@ func main() {
 		log.Fatal(http.ListenAndServe("127.0.0.1:8500", handler))
 	}()
 
+	select {}
+
 	/*err := api.StartListening(configData.Lists, configData.Hashtags)
 	if err != nil {
 		fmt.Println(err)
