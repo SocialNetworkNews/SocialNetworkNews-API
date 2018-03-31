@@ -149,6 +149,7 @@ func IssueSession() http.Handler {
 		session.Values[sessionUserKey] = twitterUser.ID
 		session.Save(w)
 		w.Header().Set("Authorization", "Bearer "+tokenString)
+		w.Header().Set("ID", twitterUser.IDStr)
 		domain := req.Header.Get("Host")
 		http.Redirect(w, req, domain, http.StatusFound)
 	}
