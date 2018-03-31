@@ -5,7 +5,6 @@ import (
 	web_api "github.com/SocialNetworkNews/SocialNetworkNews_API/api"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/api/login"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
-	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
 	tLogin "github.com/dghubble/gologin/twitter"
 	"github.com/dghubble/oauth1"
 	twitterOAuth1 "github.com/dghubble/oauth1/twitter"
@@ -16,13 +15,13 @@ import (
 )
 
 func main() {
-	api := twitter.NewTwitterAPIStruct()
+	// api := twitter.NewTwitterAPIStruct()
 	configData, confErr := config.GetConfig()
 	if confErr != nil {
 		log.Fatal(confErr)
 	}
 
-	api.Login(configData.ConsumerKey, configData.ConsumerSecret)
+	// api.Login(configData.ConsumerKey, configData.ConsumerSecret)
 	fmt.Println("Logged in!")
 
 	login.TConfig = &oauth1.Config{
@@ -54,8 +53,8 @@ func main() {
 		log.Fatal(http.ListenAndServe("127.0.0.1:8500", handler))
 	}()
 
-	err := api.StartListening(configData.Lists, configData.Hashtags)
+	/*err := api.StartListening(configData.Lists, configData.Hashtags)
 	if err != nil {
 		fmt.Println(err)
-	}
+	}*/
 }
