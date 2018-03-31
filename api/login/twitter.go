@@ -150,7 +150,8 @@ func IssueSession() http.Handler {
 		session.Save(w)
 		w.Header().Set("Authorization", "Bearer "+tokenString)
 		w.Header().Set("ID", twitterUser.IDStr)
-		domain := req.Header.Get("Host")
+		domain := req.Host
+		log.Println("domain:", domain)
 		http.Redirect(w, req, domain, http.StatusFound)
 	}
 	return http.HandlerFunc(fn)
@@ -179,9 +180,9 @@ func AuthRedirectHandler(config *oauth1.Config, failure http.Handler) http.Handl
 		failure = gologin.DefaultFailureHandler
 	}
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		domain := req.Header.Get("Host")
-		log.Println(domain)
-		config.CallbackURL = "https://" + domain + "/api/login/twitter/callback"
+		domain := req.Host
+		log.Println("domain:", domain)
+		config.CallbackURL = "https://" + domain + "/login/twitter/callback"
 		TConfig = config
 		ctx := req.Context()
 		requestToken, _, err := libLogin.RequestTokenFromContext(ctx)
