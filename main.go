@@ -51,7 +51,7 @@ func main() {
 	handler := cors.Default().Handler(r)
 
 	go func() {
-		log.Fatal(http.ListenAndServe(":8000", handler))
+		log.Fatal(http.ListenAndServe("127.0.0.1:8500", handler))
 	}()
 
 	err := api.StartListening(configData.Lists, configData.Hashtags)
