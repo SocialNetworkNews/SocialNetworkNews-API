@@ -143,6 +143,10 @@ func IssueSession() http.Handler {
 
 		// Sign and get the complete encoded token as a string using the secret
 		tokenString, err := token.SignedString(secret)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		// 2. Implement a success handler to issue some form of session
 		session := sessionStore.New(sessionName)
