@@ -7,6 +7,7 @@ import (
 	"github.com/dghubble/gologin/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/dghubble/sessions"
+	"log"
 	"net/http"
 )
 
@@ -64,7 +65,8 @@ func AuthRedirectHandler(config *oauth1.Config, failure http.Handler) http.Handl
 	}
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		domain := req.Header.Get("Host")
-		config.CallbackURL = "https://" + domain + "/login/twitter/callback"
+		log.Println(domain)
+		config.CallbackURL = "https://" + domain + "/api/login/twitter/callback"
 		TConfig = config
 		ctx := req.Context()
 		requestToken, _, err := libLogin.RequestTokenFromContext(ctx)
