@@ -181,8 +181,9 @@ func IsAuthenticated(req *http.Request) bool {
 func IsAuthenticatedHandleFunc(w http.ResponseWriter, req *http.Request) {
 	if IsAuthenticated(req) {
 		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
 	}
-	w.WriteHeader(http.StatusUnauthorized)
 }
 
 // LoginHandler handles Twitter login requests by obtaining a request token and
