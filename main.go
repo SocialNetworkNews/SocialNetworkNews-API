@@ -43,6 +43,7 @@ func main() {
 	li := r.PathPrefix("/login").Subrouter()
 	li.Handle("/twitter", login.LoginHandler(login.TConfig, nil))
 	li.Handle("/twitter/callback", tLogin.CallbackHandler(login.TConfig, login.IssueSession(), nil))
+	li.HandleFunc("/twitter/callback", login.IsAuthenticatedHandleFunc)
 
 	// cors.Default() setup the middleware with default options being
 	// all origins accepted with simple methods (GET, POST). See

@@ -169,6 +169,22 @@ func LogoutHandler(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/", http.StatusFound)
 }
 
+// IsAuthenticated returns true if the user has a signed session cookie.
+func IsAuthenticated(req *http.Request) bool {
+	if _, err := sessionStore.Get(req, sessionName); err == nil {
+		return true
+	}
+	return false
+}
+
+// IsAuthenticatedHandleFunc returns 200 if the user has a signed session cookie.
+func IsAuthenticatedHandleFunc(w http.ResponseWriter, req *http.Request) {
+	if IsAuthenticated(req) {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.WriteHeader(http.StatusUnauthorized)
+}
+
 // LoginHandler handles Twitter login requests by obtaining a request token and
 // redirecting to the authorization URL.
 func LoginHandler(config *oauth1.Config, failure http.Handler) http.Handler {
