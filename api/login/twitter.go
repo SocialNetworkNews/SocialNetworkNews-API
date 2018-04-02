@@ -180,8 +180,10 @@ func IsAuthenticated(req *http.Request) bool {
 // IsAuthenticatedHandleFunc returns 200 if the user has a signed session cookie.
 func IsAuthenticatedHandleFunc(w http.ResponseWriter, req *http.Request) {
 	if IsAuthenticated(req) {
+		log.Println("auth Correct")
 		w.WriteHeader(http.StatusOK)
 	} else {
+		log.Println("auth incorrect")
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
