@@ -145,7 +145,7 @@ func getAuthorData(id string) (*Author, error) {
 
 		author.UUID = id
 
-		TIDB, TIDerrR := txn.Get([]byte(fmt.Sprintf("users|id|T|%s", id)))
+		TIDB, TIDerrR := db.Get(txn, []byte(fmt.Sprintf("users|id|T|%s", id)))
 		if TIDerrR != nil {
 			TIDerr := errors.WithMessage(TIDerrR, fmt.Sprintf("users|T|%s|data", id))
 			return TIDerr
