@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -281,13 +282,15 @@ func getPapers(full bool, uuid string) ([]byte, error) {
 				if QueryErr != nil {
 					return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|author", prefix, stringKeyEnd))
 				}
-				author, err := getAuthorData(fmt.Sprintf("%s", AUUIDResult))
+				authorID := fmt.Sprintf("%s", AUUIDResult)
+				log.Println(authorID)
+				author, err := getAuthorData(authorID)
 				if err != nil {
 					return err
 				}
 				paper.Author = *author
 			}
-
+			log.Printf("%+v", paper)
 			papers = append(papers, paper)
 		}
 		return nil
