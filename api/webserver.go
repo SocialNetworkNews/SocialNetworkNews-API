@@ -59,7 +59,7 @@ type Paper struct {
 	UUID        string `json:"uuid,omitempty"`
 	Description string `json:"description,omitempty"`
 	PaperImage  string `json:"paper_image,omitempty"`
-	Author      `json:"author,omitempty"`
+	Author      Author `json:"author,omitempty"`
 }
 
 type Author struct {
@@ -87,14 +87,16 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 		var t []Paper
 		err := decoder.Decode(&t)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			decodeErr := errors.WithMessage(err, "Decoding")
+			http.Error(w, decodeErr.Error(), http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
 
 		papers, err := addPapers(t)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			addErr := errors.WithMessage(err, "Adding")
+			http.Error(w, addErr.Error(), http.StatusInternalServerError)
 			return
 		}
 		data = papers
