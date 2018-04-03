@@ -290,11 +290,12 @@ func getPapers(full bool, uuid string) ([]byte, error) {
 				}
 				paper.Author = *author
 			}
-			log.Printf("%+v", paper)
-			papers = append(papers, paper)
 		}
 		return nil
 	})
+
+	log.Printf("%+v", paper)
+	papers = append(papers, paper)
 
 	var papersArray []byte
 	var err error
