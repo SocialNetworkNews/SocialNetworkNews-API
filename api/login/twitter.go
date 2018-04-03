@@ -43,11 +43,17 @@ func getUserUUID(id string) (string, error) {
 	return uuidS, DBerr
 }
 
-func saveTUser(id, accessToken, accessSecret string, data []byte) error {
+func saveTUser(id, accessToken, accessSecret, name string, data []byte) error {
 	dataDB, err := db.OpenDB()
 	if err != nil {
 		return err
 	}
+
+	puuid, UUIDerr := uuid.NewV4()
+	if UUIDerr != nil {
+		return UUIDerr
+	}
+	newUUID := puuid.String()
 
 	return dataDB.Update(func(txn *badger.Txn) error {
 		ATerr := txn.Set([]byte(fmt.Sprintf("users|T|%s|accessToken", id)), []byte(accessToken))
@@ -60,11 +66,15 @@ func saveTUser(id, accessToken, accessSecret string, data []byte) error {
 			return ASerr
 		}
 
-		puuid, UUIDerr := uuid.NewV4()
-		if UUIDerr != nil {
-			return UUIDerr
+		Nerr := txn.Set([]byte(fmt.Sprintf("users|username|T|%s", newUUID)), []byte(name))
+		if Nerr != nil {
+			return Nerr
 		}
-		newUUID := puuid.String()
+
+		IDerr := txn.Set([]byte(fmt.Sprintf("users|id|T|%s", newUUID)), []byte(id))
+		if IDerr != nil {
+			return IDerr
+		}
 
 		UUIDDBerr := txn.Set([]byte(fmt.Sprintf("users|T|%s|uuid", id)), []byte(newUUID))
 		if UUIDDBerr != nil {
@@ -121,7 +131,7 @@ func IssueSession() http.Handler {
 				fmt.Println("error:", err)
 			}
 
-			SErr := saveTUser(twitterUser.IDStr, accessToken, accessSecret, b)
+			SErr := saveTUser(twitterUser.IDStr, accessToken, accessSecret, twitterUser.ScreenName, b)
 			if SErr != nil {
 				http.Error(w, SErr.Error(), http.StatusInternalServerError)
 				return

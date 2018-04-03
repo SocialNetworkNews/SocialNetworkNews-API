@@ -7,6 +7,7 @@ import (
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/db"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
+	TLoginStructs "github.com/dghubble/go-twitter/twitter"
 	"github.com/dgraph-io/badger"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -57,7 +58,7 @@ type Paper struct {
 	UUID        string `json:"uuid,omitempty"`
 	Description string `json:"description,omitempty"`
 	PaperImage  string `json:"paper_image,omitempty"`
-	Author      `json:",omitempty"`
+	Author      `json:"author,omitempty"`
 }
 
 type Author struct {
@@ -124,6 +125,36 @@ func PaperFunc(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+func getAuthorData(id string) (*Author, error) {
+	author := &Author{}
+	dataDB, err := db.OpenDB()
+	if err != nil {
+		return nil, err
+	}
+
+	DBerr := dataDB.View(func(txn *badger.Txn) error {
+		username, err := db.Get(txn, []byte(fmt.Sprintf("users|username|T|%s", id)))
+		if err != nil {
+			return err
+		}
+		author.Username = fmt.Sprintf("%s", username)
+
+		author.UUID = id
+
+		data, err := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|uuid", id)))
+		TUserData := TLoginStructs.User{}
+		UMerr := json.Unmarshal(data, &TUserData)
+		if UMerr != nil {
+			return UMerr
+		}
+		author.TwitterProfile = TUserData.URL
+		author.ProfileIMGURL = TUserData.ProfileImageURLHttps
+		return nil
+	})
+
+	return author, DBerr
+}
+
 func addPapers(data []Paper) ([]byte, error) {
 	papersDB, openErr := db.OpenDB()
 	if openErr != nil {
@@ -169,6 +200,11 @@ func addPapers(data []Paper) ([]byte, error) {
 		paper.UUID = newUUID
 		paper.Name = newName
 		paper.PaperImage = newPIMG
+		author, err := getAuthorData(newAuthor)
+		if err != nil {
+			return nil, err
+		}
+		paper.Author = *author
 
 		papers = append(papers, paper)
 	}
@@ -241,7 +277,15 @@ func getPapers(full bool, uuid string) ([]byte, error) {
 			paper.Description = fmt.Sprintf("%s", descResult)
 
 			if full {
-				//TODO Add Author Object!
+				AUUIDResult, QueryErr := db.Get(txn, []byte(fmt.Sprintf("%s%s|author", prefix, stringKeyEnd)))
+				if QueryErr != nil {
+					return errors.WithMessage(QueryErr, fmt.Sprintf("%s%s|author", prefix, stringKeyEnd))
+				}
+				author, err := getAuthorData(fmt.Sprintf("%s", AUUIDResult))
+				if err != nil {
+					return err
+				}
+				paper.Author = *author
 			}
 
 			papers = append(papers, paper)
