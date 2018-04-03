@@ -11,7 +11,6 @@ import (
 	"github.com/dghubble/oauth1"
 	"github.com/dghubble/sessions"
 	"github.com/dgraph-io/badger"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/satori/go.uuid"
 	"log"
 	"net/http"
@@ -28,35 +27,35 @@ const (
 // sessionStore encodes and decodes session data stored in signed cookies
 var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 
-func getUserSecret(id string) (string, error) {
-	var secret string
+func getUserUUID(id string) (string, error) {
+	var uuidS string
 	dataDB, err := db.OpenDB()
 	if err != nil {
 		return "", err
 	}
 
 	DBerr := dataDB.View(func(txn *badger.Txn) error {
-		data, err := db.Get(txn, []byte(fmt.Sprintf("users|%s|data", id)))
-		secret = fmt.Sprintf("%s", data)
+		data, err := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|uuid", id)))
+		uuidS = fmt.Sprintf("%s", data)
 		return err
 	})
 
-	return secret, DBerr
+	return uuidS, DBerr
 }
 
-func saveUser(id, accessToken, accessSecret string, data []byte) error {
+func saveTUser(id, accessToken, accessSecret string, data []byte) error {
 	dataDB, err := db.OpenDB()
 	if err != nil {
 		return err
 	}
 
 	return dataDB.Update(func(txn *badger.Txn) error {
-		ATerr := txn.Set([]byte(fmt.Sprintf("users|%s|accessToken", id)), []byte(accessToken))
+		ATerr := txn.Set([]byte(fmt.Sprintf("users|T|%s|accessToken", id)), []byte(accessToken))
 		if ATerr != nil {
 			return ATerr
 		}
 
-		ASerr := txn.Set([]byte(fmt.Sprintf("users|%s|accessSecret", id)), []byte(accessSecret))
+		ASerr := txn.Set([]byte(fmt.Sprintf("users|T|%s|accessSecret", id)), []byte(accessSecret))
 		if ASerr != nil {
 			return ASerr
 		}
@@ -67,12 +66,12 @@ func saveUser(id, accessToken, accessSecret string, data []byte) error {
 		}
 		newUUID := puuid.String()
 
-		USerr := txn.Set([]byte(fmt.Sprintf("users|%s|userSecret", id)), []byte(newUUID))
-		if USerr != nil {
-			return USerr
+		UUIDDBerr := txn.Set([]byte(fmt.Sprintf("users|T|%s|uuid", id)), []byte(newUUID))
+		if UUIDDBerr != nil {
+			return UUIDDBerr
 		}
 
-		return txn.Set([]byte(fmt.Sprintf("users|%s|data", id)), []byte(data))
+		return txn.Set([]byte(fmt.Sprintf("users|T|%s|data", id)), []byte(data))
 	})
 }
 
@@ -122,38 +121,25 @@ func IssueSession() http.Handler {
 				fmt.Println("error:", err)
 			}
 
-			SErr := saveUser(twitterUser.IDStr, accessToken, accessSecret, b)
+			SErr := saveTUser(twitterUser.IDStr, accessToken, accessSecret, b)
 			if SErr != nil {
 				http.Error(w, SErr.Error(), http.StatusInternalServerError)
 				return
 			}
 		}
 
-		// Create a new token object, specifying signing method and the claims
-		// you would like it to contain.
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"loggedIn": "true",
-		})
-
-		secret, err := getUserSecret(twitterUser.IDStr)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Sign and get the complete encoded token as a string using the secret
-		tokenString, err := token.SignedString([]byte(secret))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		// 2. Implement a success handler to issue some form of session
 		session := sessionStore.New(sessionName)
 		session.Values[sessionUserKey] = twitterUser.ID
 		session.Save(w)
-		w.Header().Set("Authorization", "Bearer "+tokenString)
-		w.Header().Set("ID", twitterUser.IDStr)
+
+		uuidS, err := getUserUUID(twitterUser.IDStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("UUID", uuidS)
+		w.Header().Set("API-VERSION", "0.0.0")
 		domain := req.Host
 		log.Println("domain:", domain)
 		w.WriteHeader(http.StatusOK)
