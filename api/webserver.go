@@ -144,7 +144,7 @@ func getAuthorData(id string) (*Author, error) {
 
 		author.UUID = id
 
-		data, err := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|uuid", id)))
+		data, err := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|data", id)))
 		TUserData := TLoginStructs.User{}
 		UMerr := json.Unmarshal(data, &TUserData)
 		if UMerr != nil {
