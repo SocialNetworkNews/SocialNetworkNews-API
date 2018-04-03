@@ -145,9 +145,16 @@ func getAuthorData(id string) (*Author, error) {
 
 		author.UUID = id
 
-		data, DErrR := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|data", id)))
+		TIDB, TIDerrR := txn.Get([]byte(fmt.Sprintf("users|id|T|%s", id)))
+		if TIDerrR != nil {
+			TIDerr := errors.WithMessage(TIDerrR, fmt.Sprintf("users|T|%s|data", id))
+			return TIDerr
+		}
+		TID := fmt.Sprintf("%s", TIDB)
+
+		data, DErrR := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|data", TID)))
 		if DErrR != nil {
-			DErr := errors.WithMessage(DErrR, fmt.Sprintf("users|T|%s|data", id))
+			DErr := errors.WithMessage(DErrR, fmt.Sprintf("users|T|%s|data", TID))
 			return DErr
 		}
 		TUserData := TLoginStructs.User{}
