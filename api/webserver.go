@@ -136,18 +136,24 @@ func getAuthorData(id string) (*Author, error) {
 	}
 
 	DBerr := dataDB.View(func(txn *badger.Txn) error {
-		username, err := db.Get(txn, []byte(fmt.Sprintf("users|username|T|%s", id)))
-		if err != nil {
-			return err
+		username, UErrR := db.Get(txn, []byte(fmt.Sprintf("users|username|T|%s", id)))
+		if UErrR != nil {
+			UErr := errors.WithMessage(UErrR, fmt.Sprintf("users|username|T|%s", id))
+			return UErr
 		}
 		author.Username = fmt.Sprintf("%s", username)
 
 		author.UUID = id
 
-		data, err := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|data", id)))
+		data, DErrR := db.Get(txn, []byte(fmt.Sprintf("users|T|%s|data", id)))
+		if DErrR != nil {
+			DErr := errors.WithMessage(DErrR, fmt.Sprintf("users|T|%s|data", id))
+			return DErr
+		}
 		TUserData := TLoginStructs.User{}
-		UMerr := json.Unmarshal(data, &TUserData)
-		if UMerr != nil {
+		UMerrR := json.Unmarshal(data, &TUserData)
+		if UMerrR != nil {
+			UMerr := errors.WithMessage(UMerrR, "Decode TwitterData")
 			return UMerr
 		}
 		author.TwitterProfile = TUserData.URL
