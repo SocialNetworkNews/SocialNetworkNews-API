@@ -87,7 +87,7 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 		var t []Paper
 		err := decoder.Decode(&t)
 		if err != nil {
-			decodeErr := errors.WithMessage(err, "Decoding")
+			decodeErr := errors.WithMessage(err, "Decoding JSON Body")
 			http.Error(w, decodeErr.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -95,7 +95,7 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 
 		papers, err := addPapers(t)
 		if err != nil {
-			addErr := errors.WithMessage(err, "Adding")
+			addErr := errors.WithMessage(err, "Adding Papers")
 			http.Error(w, addErr.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -161,7 +161,8 @@ func getAuthorData(id string) (*Author, error) {
 func addPapers(data []Paper) ([]byte, error) {
 	papersDB, openErr := db.OpenDB()
 	if openErr != nil {
-		return nil, openErr
+		dbErr := errors.WithMessage(openErr, "Opening DB")
+		return nil, dbErr
 	}
 
 	var papers []Paper
@@ -169,7 +170,8 @@ func addPapers(data []Paper) ([]byte, error) {
 	for _, p := range data {
 		puuid, UUIDerr := uuid.NewV4()
 		if UUIDerr != nil {
-			return nil, UUIDerr
+			uuidErr := errors.WithMessage(UUIDerr, "Generating UUID")
+			return nil, uuidErr
 		}
 		newUUID := puuid.String()
 		newName := p.Name
@@ -177,25 +179,31 @@ func addPapers(data []Paper) ([]byte, error) {
 		newAuthor := p.Author.UUID
 		newPIMG := p.PaperImage
 
-		DBErr := papersDB.Update(func(txn *badger.Txn) error {
-			nameErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|name", newUUID)), []byte(newName))
-			if nameErr != nil {
+		DBErrR := papersDB.Update(func(txn *badger.Txn) error {
+			nameErrR := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|name", newUUID)), []byte(newName))
+			if nameErrR != nil {
+				nameErr := errors.WithMessage(nameErrR, fmt.Sprintf("papers|paper|%s|name", newUUID))
 				return nameErr
 			}
 
-			descErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|description", newUUID)), []byte(newDesc))
-			if descErr != nil {
+			descErrR := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|description", newUUID)), []byte(newDesc))
+			if descErrR != nil {
+				descErr := errors.WithMessage(descErrR, fmt.Sprintf("papers|paper|%s|description", newUUID))
 				return descErr
 			}
 
-			pIMGErr := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|image", newUUID)), []byte(newPIMG))
-			if pIMGErr != nil {
+			pIMGErrR := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|image", newUUID)), []byte(newPIMG))
+			if pIMGErrR != nil {
+				pIMGErr := errors.WithMessage(pIMGErrR, fmt.Sprintf("papers|paper|%s|image", newUUID))
 				return pIMGErr
 			}
 
-			return txn.Set([]byte(fmt.Sprintf("papers|paper|%s|author", newUUID)), []byte(newAuthor))
+			authorErrR := txn.Set([]byte(fmt.Sprintf("papers|paper|%s|author", newUUID)), []byte(newAuthor))
+
+			return errors.WithMessage(authorErrR, fmt.Sprintf("papers|paper|%s|author", newUUID))
 		})
-		if DBErr != nil {
+		if DBErrR != nil {
+			DBErr := errors.WithMessage(DBErrR, "Database Request")
 			return nil, DBErr
 		}
 
@@ -203,18 +211,20 @@ func addPapers(data []Paper) ([]byte, error) {
 		paper.UUID = newUUID
 		paper.Name = newName
 		paper.PaperImage = newPIMG
-		author, err := getAuthorData(newAuthor)
-		if err != nil {
-			return nil, err
+		author, AuthorDataErrR := getAuthorData(newAuthor)
+		if AuthorDataErrR != nil {
+			AuthorDataErr := errors.WithMessage(AuthorDataErrR, "Author Data Request")
+			return nil, AuthorDataErr
 		}
 		paper.Author = *author
 
 		papers = append(papers, paper)
 	}
 
-	papersArray, err := json.Marshal(papers)
-	if err != nil {
-		return nil, err
+	papersArray, MErrR := json.Marshal(papers)
+	if MErrR != nil {
+		MErr := errors.WithMessage(MErrR, "Encoding Papers Data")
+		return nil, MErr
 	}
 
 	return papersArray, nil
