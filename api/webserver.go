@@ -225,6 +225,7 @@ func getPapers(full bool, uuid string) ([]byte, error) {
 	}
 
 	var papers []Paper
+	paper := Paper{}
 
 	papersDB.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -251,7 +252,6 @@ func getPapers(full bool, uuid string) ([]byte, error) {
 				stringKeyEnd = stringKeySlice[len(stringKeySlice)-2]
 			}
 
-			paper := Paper{}
 			if known[stringKeyEnd] {
 				continue
 			}
