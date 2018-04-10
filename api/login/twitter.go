@@ -182,14 +182,19 @@ func IsAuthenticatedHandleFunc(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		twitterUserID := Reqsession.Values[sessionUserKey]
-		// We know this is a string
-		uuidS, err := getUserUUID(twitterUserID.(string))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		switch twitterUserID.(type) {
+		case string:
+			// We know this is a string
+			uuidS, err := getUserUUID(twitterUserID.(string))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("UUID", uuidS)
+			w.WriteHeader(http.StatusOK)
 		}
-		w.Header().Set("UUID", uuidS)
-		w.WriteHeader(http.StatusOK)
+
+		w.WriteHeader(http.StatusUnauthorized)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
