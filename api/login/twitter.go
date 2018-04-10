@@ -140,7 +140,7 @@ func IssueSession() http.Handler {
 
 		// 2. Implement a success handler to issue some form of session
 		session := sessionStore.New(sessionName)
-		session.Values[sessionUserKey] = twitterUser.ID
+		session.Values[sessionUserKey] = twitterUser.IDStr
 		session.Save(w)
 
 		uuidS, err := getUserUUID(twitterUser.IDStr)
