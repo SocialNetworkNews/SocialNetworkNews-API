@@ -3,6 +3,7 @@ package login
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/SocialNetworkNews/SocialNetworkNews_API/api/util"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/db"
 	"github.com/dghubble/gologin"
 	libLogin "github.com/dghubble/gologin/oauth1"
@@ -149,7 +150,7 @@ func IssueSession() http.Handler {
 			return
 		}
 		w.Header().Set("UUID", uuidS)
-		w.Header().Set("API-VERSION", "0.0.0")
+		w.Header().Set("API-VERSION", util.APIVersion)
 		domain := req.Host
 		log.Println("domain:", domain)
 		w.WriteHeader(http.StatusOK)
@@ -175,6 +176,7 @@ func IsAuthenticated(req *http.Request) bool {
 
 // IsAuthenticatedHandleFunc returns 200 if the user has a signed session cookie.
 func IsAuthenticatedHandleFunc(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("API-VERSION", util.APIVersion)
 	if IsAuthenticated(req) {
 		Reqsession, err := sessionStore.Get(req, sessionName)
 		if err != nil {

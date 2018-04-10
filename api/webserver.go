@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/SocialNetworkNews/SocialNetworkNews_API/api/util"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/config"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/db"
 	"github.com/SocialNetworkNews/SocialNetworkNews_API/twitter"
@@ -49,7 +50,7 @@ func Yesterday(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("API-VERSION", "0.0.0")
+	w.Header().Set("API-VERSION", util.APIVersion)
 	w.WriteHeader(http.StatusOK)
 	w.Write(tweets)
 }
@@ -102,7 +103,7 @@ func Papers(w http.ResponseWriter, r *http.Request) {
 		data = papers
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("API-VERSION", "0.0.0")
+	w.Header().Set("API-VERSION", util.APIVersion)
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
@@ -123,7 +124,7 @@ func PaperFunc(w http.ResponseWriter, r *http.Request) {
 		data = papers
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("API-VERSION", "0.0.0")
+	w.Header().Set("API-VERSION", util.APIVersion)
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
