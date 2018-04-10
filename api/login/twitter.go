@@ -128,7 +128,7 @@ func IssueSession() http.Handler {
 
 			b, err := json.Marshal(twitterUser)
 			if err != nil {
-				fmt.Println("error:", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 
 			SErr := saveTUser(twitterUser.IDStr, accessToken, accessSecret, twitterUser.ScreenName, b)
@@ -176,6 +176,19 @@ func IsAuthenticated(req *http.Request) bool {
 // IsAuthenticatedHandleFunc returns 200 if the user has a signed session cookie.
 func IsAuthenticatedHandleFunc(w http.ResponseWriter, req *http.Request) {
 	if IsAuthenticated(req) {
+		Reqsession, err := sessionStore.Get(req, sessionName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		twitterUserID := Reqsession.Values[sessionUserKey]
+		// We know this is a string
+		uuidS, err := getUserUUID(twitterUserID.(string))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("UUID", uuidS)
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
